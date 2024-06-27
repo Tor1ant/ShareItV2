@@ -2,6 +2,7 @@ package com.github.tor1ant.shareitv2.user.repository.impl;
 
 import com.github.tor1ant.shareitv2.exception.BadRequestException;
 import com.github.tor1ant.shareitv2.exception.ConflictException;
+import com.github.tor1ant.shareitv2.exception.NotFoundException;
 import com.github.tor1ant.shareitv2.user.entity.UserEntity;
 import com.github.tor1ant.shareitv2.user.repository.UserRepository;
 import java.util.ArrayList;
@@ -50,6 +51,9 @@ public class InmemoryUserRepository implements UserRepository {
 
     @Override
     public UserEntity getUserById(Long userId) {
+        if (!users.containsKey(userId)) {
+            throw new NotFoundException("Пользователь с id " + userId + "не найден");
+        }
         return users.get(userId);
     }
 
@@ -66,10 +70,11 @@ public class InmemoryUserRepository implements UserRepository {
 
     private void emailValidation(UserEntity user) {
         String email = user.getEmail();
+        if (user.getId() != null && emails.get(user.getId()).equals(email)) {
+            return;
+        }
         if (emails.containsValue(email)) {
-            if (user.getId() == null || !emails.get(user.getId()).equals(email)) {
-                throw new ConflictException("User with email " + email + " already exists");
-            }
+            throw new ConflictException("Пользователь с электронной почтой" + email + "уже существует");
         }
     }
 
